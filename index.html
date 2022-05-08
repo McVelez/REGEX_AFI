@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html charset="utf-8">
+<head>
+  <title>Titulo</title>
+</head>
+<style>
+
+  .links line {
+    stroke: #999;
+    stroke-width: 3px;
+    stroke-opacity: 0.6;
+  }
+
+  .nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+
+  .svg-div{
+    margin: auto;
+    border: 5px solid #0c0c0c;
+  }
+
+</style>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
+<body>
+  <svg width="1000" height="600" class="svg-div"></svg>
+  <script type="module" src="index.js"></script> 
+  <div>
+    <input type="text" name="regex" id="regex">
+    <button type="button" class="btn-submit" id="btn">I'm done</button> 
+  </div> 
+</body>
+
+</html>

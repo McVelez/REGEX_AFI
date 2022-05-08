@@ -1,0 +1,26 @@
+let objects = []
+    let temp = null
+    let stack = [];
+    [...regex].forEach( symbol => {
+        if (symbol == '('){
+            objects.push(temp)
+            temp = symbol
+            stack.push(')')
+        }
+        else if (symbol == ')'){
+            if (stack[0]!=symbol){
+                return 'error'
+            }
+            stack.pop()
+            temp += symbol; 
+            objects.push(temp)
+            temp = null
+        }
+        temp += symbol;
+        if (symbol == '*'){
+            objects[objects.length-1] += symbol
+        }
+    } )
+    console.log(objects)
+
+
