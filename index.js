@@ -157,7 +157,7 @@ class Graph{
             this.nodes.push( {"name": taken_values.toString(), "id": taken_values, "set": 5, "center": 5} )
             this.nodes.push( {"name": (taken_values+1).toString(), "id": (taken_values+1), "set": 5, "center": 5} )
             // agregamos la arista entre los nodos
-            this.links.push({"source": taken_values, "target": (taken_values+1), "value": item.toString()})
+            this.links.push({"source": taken_values, "target": (taken_values+1), "type": item.toString()})
             // agregamos el valor del nodo actual como inicial si no se ha agregado uno en la instancia actual de Graph
             if (this.initial == null){
                 this.initial = taken_values;
@@ -166,7 +166,7 @@ class Graph{
             // de los simbolos 
             if (index > 0){
                 // taken_values-1 hace refeencia al final, taken_values al inicial
-                this.links.push({"source": (taken_values-1), "target": taken_values, "value": "ε"})
+                this.links.push({"source": (taken_values-1), "target": taken_values, "type": "ε"})
             }
             // agregamos dos nodos, por lo que index y taken values aumentan en 2
             index+=2
@@ -188,7 +188,7 @@ class Graph{
         // iteramos sobre los nodos de aceptacion actuales
         temp.forEach( node => {
             // agregamos una arista entre el estado de aceptacion y el nodo inicial de exp_b
-            this.links.push( {"source": node, "target": exp_b.initial, "value": "ε" } )
+            this.links.push( {"source": node, "target": exp_b.initial, "type": "ε" } )
         } )
         // los estados de aceptacion se vuelven los de b, ya que los anteriores ahora apuntan hacia
         // el incial de b
@@ -204,8 +204,8 @@ class Graph{
         this.links = this.links.concat(graph_b.links)
         // agregamos los links entre el nuevo nodo inicial y los estados iniciales de la instancia
         // actual y la recibida como parametro
-        this.links.push( {"source": taken_values, "target": this.initial,  "value": "ε"} )
-        this.links.push( {"source": taken_values, "target": graph_b.initial,  "value": "ε"} )
+        this.links.push( {"source": taken_values, "target": this.initial,  "type": "ε"} )
+        this.links.push( {"source": taken_values, "target": graph_b.initial,  "type": "ε"} )
         // el nuevo estado inicial es el nodo agregado
         this.initial = taken_values
         // los estados de aceptacion son la union de los estados de aceptacion de la instancia actual y graph_b
@@ -222,7 +222,7 @@ class Graph{
         this.acceptance.push(taken_values);
         // para cada estado de aceptacion, agregamos una arista entre si y el estado inicial anterior
         this.acceptance.forEach( node => {
-            this.links.push( {"source": node, "target": this.initial,  "value": "ε"} )
+            this.links.push( {"source": node, "target": this.initial,  "type": "ε"} )
         } )
         // el nuevo estado inicial es el nodo agregado
         this.initial = taken_values;
