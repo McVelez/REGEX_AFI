@@ -188,28 +188,13 @@ function finder(regex, symbol){
 function regex_splitter(regex){
     let cuack = [];
     //let reg = regex.split(/(\(|\))/gmi);
-    //let open = finder(regex, '(');
-    //let closed = finder(regex, ')');
-    let e = regex.match(/\(.*?\)\*/g);
-    let indices = [];
-    e.forEach( exp => {
-        let start;
-        if (indices.length == 0){
-            start = 0;
-        }
-        else{
-            start = indices[indices.length-1]
-        }
-        let s = regex.indexOf(exp,start)
-        indices.push( { "start": s, "end":s+exp.length-1} )
-    } )
-    console.log(indices, e)
-    for (let index = 0; index < indices.length-1; index++) {
-        console.log(regex.substring(indices[index].end+1, indices[index+1].start))
-        if (index == indices.length-2){
-            console.log(regex.substring(indices[index+1].end+1))
-        }
-    }
+    let open = finder(regex, '(');
+    let closed = finder(regex, ')');
+    let e = regex.match(/(\(|\))/gmi);
+    let indices = [], index = 0;
+    let l = []
+ 
+    console.log(e)
     //((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
         /*for (let index = 0; index < a.length; index++) {
         let temp = a[index].split(')')
