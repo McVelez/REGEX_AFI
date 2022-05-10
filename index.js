@@ -1,105 +1,141 @@
-function controls(graph){
-    var svg = d3.select("svg");
-    var width = +svg.attr("width");
-    var height = +svg.attr("height");
-  
-  var color = d3.scaleOrdinal(d3.schemeCategory10);
-  console.log(color)
-  var simulation = d3.forceSimulation()
-      .force("link", d3.forceLink().id(function(d) { return d.name; }))
-      .force("charge", d3.forceManyBody()
-          .strength(-400))
-      .force("center", d3.forceCenter(width / 2, height / 2));
-  
-    var link = svg.append("g")
-      .attr("class", "links")
-      .selectAll("line")
-      .data(graph.links)
-      .enter().append("line")
-      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
-    console.log(graph.nodes)
-    
-    var node = svg.append("g")
-        .attr("class", "nodes")
-        .selectAll("circle")
-        .data(graph.nodes)
-        .enter().append("circle")
-        .attr("cx", function (d) { return d.cx; })
-        .attr("cy", function (d) { return d.cy; })
-        .attr("r", 15)
-        .attr("fill", function(d) { return color(d.set); })
-        .call(d3.drag()
-            .on("start", (d) => { dragstarted(d, simulation) })
-            .on("drag", dragged)
-            .on("end", (d) => { dragended(d, simulation) }));
-  
-  var label = svg.selectAll(".mytext")
-      .data(graph.nodes)
-      .enter()
-      .append("text")
-      .text(function (d) { return d.name; })
-      .style("text-anchor", "middle")
-      .style("fill", "#555")
-      .style("font-family", "Arial")
-      .style("font-size", 10);
-  
-    simulation
-        .nodes(graph.nodes)
-        .on("tick", () => {
-            ticked(link, node, label)
-        });
-    
-    simulation.force("link")
-        .links(graph.links);
-    
-    svg.append("svg:defs").selectAll("marker")
-        .data(["end"])
-        .enter().append("svg:marker")
-        .attr("id", String)
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 18)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("svg:path")
-        .attr("d", "M0,-5L10,0L0,5");
-}
+function controls(graphOFICIAL) {
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-  
-  function ticked(link, node, label) {
-      link
-          .attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; })
-          .attr("marker-end", "url(#end)");
-  
-      node
-          .attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; });
-  
-      label
-          .attr("x", function(d){ return d.x; })
-          .attr("y", function (d) {return d.y - 10; });
-  }
-  
-  function dragstarted(d, simulation) {
-    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-  
-  function dragged(d) {
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
-  }
-  
-  function dragended(d, simulation) {
-    if (!d3.event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
-  }
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height"),
+        node, edgepaths, edgelabels,
+        link;
+
+    svg.append('defs').append('marker')
+        .attrs({'id':'arrowhead',
+            'viewBox':'0 -5 10 10',
+            'refX':15,
+            'refY':0,
+            'orient':'auto',
+            'markerWidth':13,
+            'markerHeight':13,
+            'xoverflow':'visible'})
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+        .style('stroke','black');
+
+    var simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function (d) {return d.id;}).distance(100).strength(1))
+        .force("charge", d3.forceManyBody())
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    update(graphOFICIAL.links, graphOFICIAL.nodes)
+
+    function update(links, nodes) {
+        link = svg.selectAll(".link")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("class", "link")
+            .attr('marker-end','url(#arrowhead)')
+
+        link.append("title")
+            .text(function (d) {return d.type;});
+
+        edgepaths = svg.selectAll(".edgepath")
+            .data(links)
+            .enter()
+            .append('path')
+            .attrs({
+                'class': 'edgepath',
+                'fill-opacity': 0,
+                'stroke-opacity': 0,
+                'fill': '#010203',
+                'stroke': "black",
+                'stroke-width': 3,
+                'id': function (d, i) {return 'edgepath' + i}
+            })
+            .style("pointer-events", "none");
+
+        edgelabels = svg.selectAll(".edgelabel")
+            .data(links)
+            .enter()
+            .append('text')
+            .style("pointer-events", "none")
+            .attrs({
+                'class': 'edgelabel',
+                'fill': '#010203',
+                'stroke': 'black',
+                'id': function (d, i) {return 'edgelabel' + i},
+                'font-size': 10
+                
+            });
+
+        edgelabels.append('textPath')
+            .attr('xlink:href', function (d, i) {return '#edgepath' + i})
+            .style("text-anchor", "middle")
+            .style("pointer-events", "none")
+            .attr("startOffset", "50%")
+            .text(function (d) {return d.type});
+
+        node = svg.selectAll(".node")
+            .data(nodes)
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    //.on("end", dragended)
+            );
+
+        node.append("circle")
+            .attr("r", 12)
+            .style("fill", function (d, i) {return colors(i);})
+
+        simulation
+            .nodes(nodes)
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(links);
+    }
+
+    function ticked() {
+        link
+            .attr("x1", function (d) {return d.source.x;})
+            .attr("y1", function (d) {return d.source.y;})
+            .attr("x2", function (d) {return d.target.x;})
+            .attr("y2", function (d) {return d.target.y;});
+
+        node
+            .attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
+
+        edgepaths.attr('d', function (d) {
+            return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y;
+        });
+
+        edgelabels.attr('transform', function (d) {
+            if (d.target.x < d.source.x) {
+                var bbox = this.getBBox();
+
+                rx = bbox.x + bbox.width / 2;
+                ry = bbox.y + bbox.height / 2;
+                return 'rotate(180 ' + rx + ' ' + ry + ')';
+            }
+            else {
+                return 'rotate(0)';
+            }
+        });
+    }
+
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.7).restart()
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+}
 
 class Graph{
     constructor(REGEX){
@@ -118,8 +154,8 @@ class Graph{
         this.regex.forEach( item => {
             // agregamos dos nodos para cada simbolo en el regex: nodo inicial y final en un regex de un solo simbolo
             // por el momento ignoren set y center
-            this.nodes.push( {"name": taken_values, "id": taken_values, "set": 5, "center": 5} )
-            this.nodes.push( {"name": taken_values+1, "id": (taken_values+1), "set": 5, "center": 5} )
+            this.nodes.push( {"name": taken_values.toString(), "id": taken_values, "set": 5, "center": 5} )
+            this.nodes.push( {"name": (taken_values+1).toString(), "id": (taken_values+1), "set": 5, "center": 5} )
             // agregamos la arista entre los nodos
             this.links.push({"source": taken_values, "target": (taken_values+1), "value": item.toString()})
             // agregamos el valor del nodo actual como inicial si no se ha agregado uno en la instancia actual de Graph
@@ -162,7 +198,7 @@ class Graph{
     // recibimos una instancia de Graph
     union(graph_b){
         // agregamos el nuevo nodo inicial
-        this.nodes.push( {"name": taken_values, "id":taken_values, "set": 5, "center": 5} )
+        this.nodes.push( {"name": (taken_values).toString(), "id":taken_values, "set": 5, "center": 5} )
         // concatenamos los nodos y links de ambas instancias de Graph
         this.nodes = this.nodes.concat(graph_b.nodes)
         this.links = this.links.concat(graph_b.links)
@@ -181,7 +217,7 @@ class Graph{
     // operacion unaria
     star(){
         // agregamos un nuevo nodo inicial
-        this.nodes.push( {"name": taken_values, "id":taken_values, "set": 5, "center": 5} );
+        this.nodes.push( {"name": taken_values.toString(), "id":taken_values, "set": 5, "center": 5} );
         // agregamos el nuevo nodo inicial a los estados de aceptacion
         this.acceptance.push(taken_values);
         // para cada estado de aceptacion, agregamos una arista entre si y el estado inicial anterior
@@ -222,12 +258,12 @@ function finder(regex, symbol){
 // (01 U 011 (1 U 0)* U 01)
 // yea we might need a syntax tree
 //
-class Node {
-    constructor()
-}
-
 
 function regex_splitter(regex){
+    return regex.split()
+}
+
+function regex_splitter_(regex){
     let cuack = [];
     //let reg = regex.split(/(\(|\))/gmi);
     let open = finder(regex, '(');
@@ -255,8 +291,8 @@ var taken_values = 0
 let btn_submit = document.getElementById("btn")
 btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
-    regex_splitter(regex)
-    /*
+    //regex_splitter(regex)
+
 // DO NOT ERASE
 // first of all, check for the different individual graphs that can be created
     let g1 = new Graph(regex_splitter("01"))
@@ -267,7 +303,7 @@ btn_submit.addEventListener("click", () => {
     /*let g3 = new Graph(regex_splitter("0"))
     g3 = g3.concat_symbols()
     g1 = g1.concat_expressions(g3)
-    g1.star()
+    g1.star()*/
     g1.nodes.forEach( node => {
         if (g1.acceptance.includes(node.id)){
             node.set = 0
@@ -278,6 +314,6 @@ btn_submit.addEventListener("click", () => {
         "links": g1.links
     }
     console.log(graph)
-    controls(graph) */
+    controls(graph) 
     
 })
