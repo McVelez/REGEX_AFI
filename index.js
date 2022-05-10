@@ -110,69 +110,96 @@ class Graph{
         this.stack = [];
         this.regex = REGEX;
     }
-
+    // creo que el nombre lo dice, ademas no acepta parametros
     concat_symbols(){
+        // definimos un indice que cuente los nodos agregados
         let index = 0
+        // iteramos sobre el regex (se espera que sea una lista)
         this.regex.forEach( item => {
+            // agregamos dos nodos para cada simbolo en el regex: nodo inicial y final en un regex de un solo simbolo
+            // por el momento ignoren set y center
             this.nodes.push( {"name": taken_values, "id": taken_values, "set": 5, "center": 5} )
             this.nodes.push( {"name": taken_values+1, "id": (taken_values+1), "set": 5, "center": 5} )
+            // agregamos la arista entre los nodos
             this.links.push({"source": taken_values, "target": (taken_values+1), "value": item.toString()})
+            // agregamos el valor del nodo actual como inicial si no se ha agregado uno en la instancia actual de Graph
             if (this.initial == null){
                 this.initial = taken_values;
             } 
+            // cuando queremos concatenar symbolos, se agrega la arista con epsilon como etqiueta entre el nodo final e inicial
+            // de los simbolos 
             if (index > 0){
+                // taken_values-1 hace refeencia al final, taken_values al inicial
                 this.links.push({"source": (taken_values-1), "target": taken_values, "value": "ε"})
             }
+            // agregamos dos nodos, por lo que index y taken values aumentan en 2
             index+=2
             taken_values +=2
         } )
+        // al ser una concatenacion de simbolos, solo tenemos un nodo de aceptacion
         this.acceptance = [taken_values-1];
+        // regresamos la instancia de Graph
         return this
     }
-
+    // recibimos una expresion, la cual es una instancia de Graph
     concat_expressions(exp_b){
+        // le agregamos a la instancia actual, los nodos y links de Graph recibido como parametro
         this.nodes = this.nodes.concat( exp_b.nodes )
         this.links = this.links.concat( exp_b.links )
+        // definimos un temporal con los nodos de aceptacion sin alterar de la instacia actual
         let temp = this.acceptance;
         console.log("aceptacion:",temp, this.nodes.length, exp_b.nodes.length)
+        // iteramos sobre los nodos de aceptacion actuales
         temp.forEach( node => {
+            // agregamos una arista entre el estado de aceptacion y el nodo inicial de exp_b
             this.links.push( {"source": node, "target": exp_b.initial, "value": "ε" } )
         } )
+        // los estados de aceptacion se vuelven los de b, ya que los anteriores ahora apuntan hacia
+        // el incial de b
         this.acceptance = exp_b.acceptance;
         return this
     }
-
+    // recibimos una instancia de Graph
     union(graph_b){
+        // agregamos el nuevo nodo inicial
         this.nodes.push( {"name": taken_values, "id":taken_values, "set": 5, "center": 5} )
+        // concatenamos los nodos y links de ambas instancias de Graph
         this.nodes = this.nodes.concat(graph_b.nodes)
         this.links = this.links.concat(graph_b.links)
+        // agregamos los links entre el nuevo nodo inicial y los estados iniciales de la instancia
+        // actual y la recibida como parametro
         this.links.push( {"source": taken_values, "target": this.initial,  "value": "ε"} )
         this.links.push( {"source": taken_values, "target": graph_b.initial,  "value": "ε"} )
+        // el nuevo estado inicial es el nodo agregado
         this.initial = taken_values
+        // los estados de aceptacion son la union de los estados de aceptacion de la instancia actual y graph_b
         this.acceptance = this.acceptance.concat( graph_b.acceptance )
+        // solo agregamos un nodo nuevo
         taken_values += 1
         return this
     }
-
+    // operacion unaria
     star(){
-        // add new initial node
+        // agregamos un nuevo nodo inicial
         this.nodes.push( {"name": taken_values, "id":taken_values, "set": 5, "center": 5} );
+        // agregamos el nuevo nodo inicial a los estados de aceptacion
         this.acceptance.push(taken_values);
+        // para cada estado de aceptacion, agregamos una arista entre si y el estado inicial anterior
         this.acceptance.forEach( node => {
             this.links.push( {"source": node, "target": this.initial,  "value": "ε"} )
         } )
+        // el nuevo estado inicial es el nodo agregado
         this.initial = taken_values;
         taken_values +=1;
     }
 }
 
-
-// check for correspondence between parentheses
-// 
 function idk(cosa){
 
 }
 
+
+// NO FUNCIONA
 let e = 'dedede'
 function finder(regex, symbol){
     let occurences = [], count = 0;
@@ -184,6 +211,21 @@ function finder(regex, symbol){
     }
     return occurences
 }
+// creo que tendremos que hacer una especie de arbol de sintaxis para poder descomponer el regex y convertitlo en objetos 
+// pero idk
+
+
+// NO FUNCIONA 
+
+// SPLITTER PSEUDO CODE
+// ((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
+// (01 U 011 (1 U 0)* U 01)
+// yea we might need a syntax tree
+//
+class Node {
+    constructor()
+}
+
 
 function regex_splitter(regex){
     let cuack = [];
@@ -194,7 +236,7 @@ function regex_splitter(regex){
     let indices = [], index = 0;
     let l = []
  
-    console.log(e)
+    console.log(e);
     //((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
         /*for (let index = 0; index < a.length; index++) {
         let temp = a[index].split(')')
@@ -215,6 +257,7 @@ btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
     regex_splitter(regex)
     /*
+// DO NOT ERASE
 // first of all, check for the different individual graphs that can be created
     let g1 = new Graph(regex_splitter("01"))
     g1 = g1.concat_symbols()
