@@ -255,7 +255,7 @@ function finder(regex, symbol){
 
 // SPLITTER PSEUDO CODE
 // ((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
-// (01 U 011 (1 U 0)* U 01)
+// (01 U 011 (1 U 0)*) U 01
 // yea we might need a syntax tree
 //
 
@@ -263,27 +263,41 @@ function regex_splitter(regex){
     return regex.split()
 }
 
-function regex_splitter_(regex){
-    let cuack = [];
-    //let reg = regex.split(/(\(|\))/gmi);
+function parentheses_matcher(regex){
+    let matches = [];
     let open = finder(regex, '(');
     let closed = finder(regex, ')');
-    let e = regex.match(/(\(|\))/gmi);
-    let indices = [], index = 0;
-    let l = []
- 
-    console.log(e);
-    //((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
-        /*for (let index = 0; index < a.length; index++) {
-        let temp = a[index].split(')')
-        if (temp.length == 1){
-            u.push(a[index])
-        }        
-        else {
-            u = u.concat(temp)
+    let parentheses = regex.match(/(\(|\))/gmi);
+    let last_seen = null, current_closed = 0;
+    // function to get the parentheses order(agrupation)
+    parentheses.forEach( par => {
+        if (par == '('){
+            if (last_seen == null){
+                last_seen = 0
+            }
+            else {
+                // agrega al contador cada vez que vea un (
+                last_seen += 1;
+            }
         }
-    }
-    console.log(u) */
+        else {
+            // si ve un ), entonces agregar el scope de los parentesis actuales
+            matches.push( [open[last_seen], closed[current_closed]] );
+            // eliinamos el indice del parentesis abiertto ya tomado
+            open.splice(last_seen, 1)
+            // recorremos en 1 para parentesis cerrados
+            current_closed += 1;
+            // vamos para atras 1 en parentesis abiertos
+            last_seen -= 1;
+        }
+    })
+    return matches
+}
+
+//0U((01 U 011 (1 U 0)*) U 01)
+function regex_splitter_(regex){
+    let cuack = parentheses_matcher(regex)
+    
 }
 
 var taken_values = 0 
@@ -292,18 +306,20 @@ let btn_submit = document.getElementById("btn")
 btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
     //regex_splitter(regex)
+    regex = regex.replace(' ', '')
+    regex_splitter_(regex)
 
 // DO NOT ERASE
 // first of all, check for the different individual graphs that can be created
-    let g1 = new Graph(regex_splitter("01"))
+    /*let g1 = new Graph(regex_splitter("01"))
     g1 = g1.concat_symbols()
     let g2 = new Graph(regex_splitter("1"))
     g2 = g2.concat_symbols()
     g1 = g1.union(g2)
-    /*let g3 = new Graph(regex_splitter("0"))
+    let g3 = new Graph(regex_splitter("0"))
     g3 = g3.concat_symbols()
     g1 = g1.concat_expressions(g3)
-    g1.star()*/
+    g1.star()
     g1.nodes.forEach( node => {
         if (g1.acceptance.includes(node.id)){
             node.set = 0
@@ -314,6 +330,6 @@ btn_submit.addEventListener("click", () => {
         "links": g1.links
     }
     console.log(graph)
-    controls(graph) 
+    controls(graph) */
     
 })
