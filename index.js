@@ -184,7 +184,7 @@ class Graph{
         this.links = this.links.concat( exp_b.links )
         // definimos un temporal con los nodos de aceptacion sin alterar de la instacia actual
         let temp = this.acceptance;
-        console.log("aceptacion:",temp, this.nodes.length, exp_b.nodes.length)
+        //console.log("aceptacion:",temp, this.nodes.length, exp_b.nodes.length)
         // iteramos sobre los nodos de aceptacion actuales
         temp.forEach( node => {
             // agregamos una arista entre el estado de aceptacion y el nodo inicial de exp_b
@@ -234,26 +234,24 @@ function regex_splitter(regex){
     return regex.split()
 }
 
-function findParenthesisPairs(regex){
-    let stack = [];
-    let dict = {};
-    for (const pos in regex) {
-        const element = regex[pos]; // Caracter individual del regex
-        if(element == '('){ stack.push(pos); } // Se agrega al stack el indice del parentesis cuando se encuentre (
-        if(element == ')'){ dict[stack.pop()] = pos; } // Se quita del stack cuando se encuentre un ) y se agrega el indice correspondiente a su parentesis par
-    }
-    return dict;
-}
-
 var taken_values = 0 
-//let btn_submit = document.getElementById("btn");
-
+let btn_submit = document.getElementById("btn");
+let dict = null;
 btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
     //regex_splitter(regex)
-    regex = regex.replace(' ', '')
-    regex_splitter_(regex)
+    regex = regex.replace(' ', '');
 
+    let dictTemp = findParenthesisPairs(regex);
+    dict = dictTemp;
+
+    let cosa = recursiva(regex, 0);
+    let graph = {
+        "nodes":cosa.nodes,
+        "links": cosa.links
+    }
+    console.log(cosa)
+    controls(graph) 
 // DO NOT ERASE
 // first of all, check for the different individual graphs that can be created
     /*let g1 = new Graph(regex_splitter("01"))
@@ -282,36 +280,61 @@ btn_submit.addEventListener("click", () => {
 
 // zona del miedo
 /* 0U(01(10)*(1(01)*)*0)* */
-const terminales = [0,1]
+const terminales = ["0","1", "a", "b", "c"]
 let my_graph = null;
 let offset = 0;
 
-//let dict = {9:10, }
+function findParenthesisPairs(regex){
+    let stack = [];
+    let dict = {};
+    for (const pos in regex) {
+        const element = regex[pos]; // Caracter individual del regex
+        if(element == '('){ stack.push(pos); } // Se agrega al stack el indice del parentesis cuando se encuentre (
+        if(element == ')'){ dict[stack.pop()] = pos; } // Se quita del stack cuando se encuentre un ) y se agrega el indice correspondiente a su parentesis par
+    }
+    return dict;
+}
 
-function recursiva(regex, offset, temp=null){
+
+
+function recursiva(regex, offset, was_char=false, temp=null){
+    console.log(regex)
     // si es terminal 
     if( terminales.includes(regex[0])){
-        let temp = new Graph(regex[0]);
-        temp.concat_symbols(); // o --0--> o
-        recursiva( regex.substring(1), offset+1, temp );
+        /* otro if dentro que v[erifique que antes no venia otro caracter concat_expression*/
+        let temp2 = new Graph([regex[0]]);
+        temp2.concat_symbols(); // o --0--> o
+        console.log("No se murio")
+        if(was_char){
+            temp.concat_expressions(temp2);
+            temp2 = temp;
+        }
+        temp = recursiva( regex.substring(1), offset+1, true, temp2 );
+
     } 
     else if (regex[0] == 'U'){
-        temp.union( recursiva(regex.substring(1)), offset+1 );
+        temp.union( recursiva(regex.substring(1), offset+1, false, temp ));
     }
     else if (regex[0] == '(' ){
-        pos_star = dict[offset]+1;
-
+        
+        pos_star = parseInt(dict[offset])+1;
         if(pos_star - offset <= regex.length){
+            console.log('aqui')
             if(regex[pos_star - offset] == "*"){
                 // buena esa
-                let temp2 = recusiva( regex.substring(1, pos_star-offset-1), offset);
-                temp2.star();
-                // manejar la parte de la subcadena :pos_star+
+                let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, false, temp);
+                temp3.star();
+                temp = recursiva( regex.substring(pos_star-offset+1), offset-1 , true, temp3);
+            }
+            else{
+                console.log("esto: ",regex.substring(1))
+                temp = recursiva(regex.substring(1, pos_star), offset+1, false, temp);
+                
+                temp = recursiva(regex.substring(pos_star-offset),offset, true,temp)
             }
         }
     }
-    return graph;
+    return temp;
 }
 
-const texto = "holamundo";
-console.log(texto[0])
+
