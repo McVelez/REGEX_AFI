@@ -1,8 +1,3 @@
-// a.b.c#
-// a*
-// a * #
-// Agregar nodo al arbol que tenga caracter, operacion y caracter a agregar
-
 class Node {
     constructor(data)
     {
@@ -15,28 +10,56 @@ class Node {
 class Tree {
     constructor()
     {
-        this.root = null
+        this.root = null;
     }
 
     insert(data){
+        // En caso de que no haya raiz
         var newNode = new Node(data)
+        console.log(data)
         if(this.root == null){
             this.root = newNode;
         }
-        else
+        else{
             this.insertNode(this.root, newNode)
+        }
             
     }
 
     insertNode(node, newNode) {
-        if(node.left == null){
+        // . -> .0
+        if(node.right == null){
+            node.right = newNode;
+            return node.right
+        }
+        else if (node.right == null){
             node.left = newNode;
+            return node.left   
         }
-        else
-            this.insertNode(node.left, newNode);
-
+        else {
+            console.log("X")
+            var tempNode = node.left;
+            node.left = new Node(".");
+            node.left.right = tempNode;
         }
-        
-
+    }
+    preorder() {
+        preOrderHelper(this.root);
     }
 }
+
+function preOrderHelper(root) {
+    if (root !== null) {
+        preOrderHelper(root.left);
+        console.log(root.data);
+        preOrderHelper(root.right);
+    }
+ }
+
+tree =  new Tree()
+tree.insert('.')
+tree.insert('0')
+tree.insert('1')
+// cambiar el nodo izquierdo por una concatenacion, y mover a este mismo nodo a la derecha de conca
+tree.insert('1')
+tree.preorder();

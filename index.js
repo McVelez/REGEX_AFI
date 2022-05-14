@@ -230,79 +230,24 @@ class Graph{
     }
 }
 
-function idk(cosa){
-
-}
-
-
-// NO FUNCIONA
-let e = 'dedede'
-function finder(regex, symbol){
-    let occurences = [], count = 0;
-    let position = regex.indexOf(symbol)
-    while (position !== -1) {
-        count++
-        occurences.push(position)
-        position = regex.indexOf(symbol, position + 1)
-    }
-    return occurences
-}
-// creo que tendremos que hacer una especie de arbol de sintaxis para poder descomponer el regex y convertitlo en objetos 
-// pero idk
-
-
-// NO FUNCIONA 
-
-// SPLITTER PSEUDO CODE
-// ((1)*00((01)U(1)*)U(01U011(1U0)*U01))U1
-// (01 U 011 (1 U 0)*) U 01
-// yea we might need a syntax tree
-//
-
 function regex_splitter(regex){
     return regex.split()
 }
 
-function parentheses_matcher(regex){
-    let matches = [];
-    let open = finder(regex, '(');
-    let closed = finder(regex, ')');
-    let parentheses = regex.match(/(\(|\))/gmi);
-    let last_seen = null, current_closed = 0;
-    // function to get the parentheses order(agrupation)
-    parentheses.forEach( par => {
-        if (par == '('){
-            if (last_seen == null){
-                last_seen = 0
-            }
-            else {
-                // agrega al contador cada vez que vea un (
-                last_seen += 1;
-            }
-        }
-        else {
-            // si ve un ), entonces agregar el scope de los parentesis actuales
-            matches.push( [open[last_seen], closed[current_closed]] );
-            // eliinamos el indice del parentesis abiertto ya tomado
-            open.splice(last_seen, 1)
-            // recorremos en 1 para parentesis cerrados
-            current_closed += 1;
-            // vamos para atras 1 en parentesis abiertos
-            last_seen -= 1;
-        }
-    })
-    return matches
-}
-
-//0U((01 U 011 (1 U 0)*) U 01)
-function regex_splitter_(regex){
-    let cuack = parentheses_matcher(regex)
-    
+function findParenthesisPairs(regex){
+    let stack = [];
+    let dict = {};
+    for (const pos in regex) {
+        const element = regex[pos]; // Caracter individual del regex
+        if(element == '('){ stack.push(pos); } // Se agrega al stack el indice del parentesis cuando se encuentre (
+        if(element == ')'){ dict[stack.pop()] = pos; } // Se quita del stack cuando se encuentre un ) y se agrega el indice correspondiente a su parentesis par
+    }
+    return dict;
 }
 
 var taken_values = 0 
+//let btn_submit = document.getElementById("btn");
 
-let btn_submit = document.getElementById("btn")
 btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
     //regex_splitter(regex)
@@ -333,3 +278,40 @@ btn_submit.addEventListener("click", () => {
     controls(graph) */
     
 })
+
+
+// zona del miedo
+/* 0U(01(10)*(1(01)*)*0)* */
+const terminales = [0,1]
+let my_graph = null;
+let offset = 0;
+
+//let dict = {9:10, }
+
+function recursiva(regex, offset, temp=null){
+    // si es terminal 
+    if( terminales.includes(regex[0])){
+        let temp = new Graph(regex[0]);
+        temp.concat_symbols(); // o --0--> o
+        recursiva( regex.substring(1), offset+1, temp );
+    } 
+    else if (regex[0] == 'U'){
+        temp.union( recursiva(regex.substring(1)), offset+1 );
+    }
+    else if (regex[0] == '(' ){
+        pos_star = dict[offset]+1;
+
+        if(pos_star - offset <= regex.length){
+            if(regex[pos_star - offset] == "*"){
+                // buena esa
+                let temp2 = recusiva( regex.substring(1, pos_star-offset-1), offset);
+                temp2.star();
+                // manejar la parte de la subcadena :pos_star+
+            }
+        }
+    }
+    return graph;
+}
+
+const texto = "holamundo";
+console.log(texto[0])
