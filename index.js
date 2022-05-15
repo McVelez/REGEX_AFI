@@ -298,38 +298,60 @@ function findParenthesisPairs(regex){
 
 
 function recursiva(regex, offset, was_char=false, temp=null){
-    console.log(regex)
+    //console.log(regex)
+    let pos_star = parseInt(dict[offset])+1;
     // si es terminal 
     if( terminales.includes(regex[0])){
         /* otro if dentro que v[erifique que antes no venia otro caracter concat_expression*/
         let temp2 = new Graph([regex[0]]);
         temp2.concat_symbols(); // o --0--> o
-        console.log("No se murio")
         if(was_char){
             temp.concat_expressions(temp2);
             temp2 = temp;
         }
-        temp = recursiva( regex.substring(1), offset+1, true, temp2 );
-
-    } 
-    else if (regex[0] == 'U'){
-        temp.union( recursiva(regex.substring(1), offset+1, false, temp ));
-    }
-    else if (regex[0] == '(' ){
-        
-        pos_star = parseInt(dict[offset])+1;
-        if(pos_star - offset <= regex.length){
-            console.log('aqui')
-            if(regex[pos_star - offset] == "*"){
-                // buena esa
-                let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, false, temp);
-                temp3.star();
-                temp = recursiva( regex.substring(pos_star-offset+1), offset-1 , true, temp3);
+        if (regex.substring(1) != ''){
+            if (regex[1] == '(' && isNaN(pos_star)){
+                console.log('1',  regex.substring(1), offset+1)
+                temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, true, temp2 ));
             }
             else{
-                console.log("esto: ",regex.substring(1))
+                console.log('2',  regex.substring(1), offset+1)
+                temp = recursiva( regex.substring(1), offset+1, true, temp2 );
+            }
+        }
+        else{
+            temp = temp2
+        }
+    } 
+    else if (regex[0] == 'U'){
+        temp = temp.union( recursiva(regex.substring(1), offset+1, false, temp ));
+    }
+    else if (regex[0] == '(' ){
+        if(pos_star - offset <= regex.length){
+            pos_star = parseInt(dict[offset])+1;
+            //console.log('dentro',dict, offset)
+            if(regex[pos_star - offset] == "*"){
+                //console.log('estrella', regex.substring(1, pos_star-offset-1))
+                console.log('3',  regex.substring(1,  pos_star-offset-1), offset+1)
+                let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, false, temp);
+                temp3.star();
+                if (''!=regex.substring(pos_star-offset+1)){
+                    
+                    if ((regex[1] == '(' || terminales.includes(regex[1]) ) && (pos_star - offset <= regex.length && regex[pos_star - offset] == "*") ) {
+                        console.log('4',regex.substring(pos_star-offset+1), offset)
+                        temp = temp3.concat_expressions(recursiva( regex.substring(pos_star-offset+1), offset-1 , false, temp3))
+                    }
+                    else{
+                        console.log('5',  regex.substring(pos_star-offset+1), offset)
+                        temp = recursiva( regex.substring(pos_star-offset+1), offset-1 , false, temp3);
+                    }
+                }
+                else{
+                    temp = temp3;
+                }
+            }
+            else{
                 temp = recursiva(regex.substring(1, pos_star), offset+1, false, temp);
-                
                 temp = recursiva(regex.substring(pos_star-offset),offset, true,temp)
             }
         }
