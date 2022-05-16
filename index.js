@@ -284,9 +284,12 @@ function terminal(regex, offset, temp=null){
     temp2.concat_symbols(); // o --0--> o
     if ( regex.substring(1)!=''){
         if (regex[1] == '(' || terminales.includes(regex[1])){
-            temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, true, temp2 ));
+            temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, temp2 ));
         }
-        else{ temp = recursiva( regex.substring(1), offset+1, true, temp2 ); }
+        else{ 
+            temp = recursiva( regex.substring(1), offset+1, temp2 ); 
+            
+        }
     }
     else{
         temp = temp2
@@ -306,23 +309,24 @@ function star_(regex, offset, temp){
                 temp = temp3.concat_expressions(recursiva(newRegex, pos_star+1, temp3))
             }
             else { 
-                temp = recursiva( regex.substring(pos_star-offset+1), offset-1, temp3);
+                temp = recursiva( regex.substring(pos_star-offset+1), pos_star+1, temp3);
             }
         }
         else{
-            console.log(dict)
             temp = recursiva(regex.substring(1, pos_star), offset+1, temp);
-            temp = recursiva(regex.substring(pos_star-offset),offset,temp)
+            temp = recursiva(regex.substring(pos_star-offset),pos_star+1,temp)
         }
     }
     return temp
 }
 
 function recursiva(regex, offset, temp=null){
+    console.log(regex)
     if( terminales.includes(regex[0])){
         temp = terminal(regex, offset, temp);
     } 
     else if (regex[0] == 'U'){
+        console.log('eee', temp)
         temp.union( recursiva(regex.substring(1), offset+1, temp ));
     }
     else if (regex[0] == '(' ){
