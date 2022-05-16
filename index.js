@@ -288,7 +288,6 @@ function terminal(regex, offset, temp=null){
         }
         else{ 
             temp = recursiva( regex.substring(1), offset+1, temp2 ); 
-            
         }
     }
     else{
@@ -313,8 +312,13 @@ function star_(regex, offset, temp){
             }
         }
         else{
-            temp = recursiva(regex.substring(1, pos_star), offset+1, temp);
-            temp = recursiva(regex.substring(pos_star-offset),pos_star+1,temp)
+            temp = recursiva(regex.substring(1, pos_star), pos_star+1, temp);
+            if (regex.substring(pos_star+1)[0] == '('|| terminales.includes(regex.substring(pos_star+1)[0]) ){
+                temp = temp.concat_expressions(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
+            }
+            else{
+                temp = recursiva(regex.substring(pos_star+1),pos_star+1,temp)   
+            }
         }
     }
     return temp
