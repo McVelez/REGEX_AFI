@@ -36,7 +36,7 @@ function controls(graphOFICIAL) {
             .attr('marker-end','url(#arrowhead)')
 
         link.append("title")
-            .text(function (d) {return d.type;});
+            .text(function (d) {return d.id;});
 
         edgepaths = svg.selectAll(".edgepath")
             .data(links)
@@ -44,8 +44,8 @@ function controls(graphOFICIAL) {
             .append('path')
             .attrs({
                 'class': 'edgepath',
-                'fill-opacity': 0,
-                'stroke-opacity': 0,
+                'fill-opacity': 1,
+                'stroke-opacity': 1,
                 'fill': '#010203',
                 'stroke': "black",
                 'stroke-width': 3,
@@ -63,7 +63,7 @@ function controls(graphOFICIAL) {
                 'fill': '#010203',
                 'stroke': 'black',
                 'id': function (d, i) {return 'edgelabel' + i},
-                'font-size': 10
+                'font-size': 25
                 
             });
 
@@ -87,7 +87,7 @@ function controls(graphOFICIAL) {
 
         node.append("circle")
             .attr("r", 12)
-            .style("fill", function (d, i) {return colors(i);})
+            .style("fill", function (d, i) { console.log('color', d); return colors(d.set);})
 
         simulation
             .nodes(nodes)
@@ -230,8 +230,26 @@ class Graph{
     }
 }
 
-function regex_splitter(regex){
-    return regex.split()
+function prepare_graph(regex){
+    let cosa = recursiva(regex, 0);
+    cosa.nodes.forEach( node => {
+        if (cosa.initial == node.id && cosa.acceptance.includes(node.id)){
+            node.set = 3
+        }
+        else if (cosa.acceptance.includes(node.id)){
+            node.set = 0 // verde
+        }
+        else if (cosa.initial == node.id){
+            console.log(node)
+            node.set = 2; // azul
+        }
+    })
+    let graph = {
+        "nodes":cosa.nodes,
+        "links": cosa.links
+    }
+    console.log(cosa)
+    return graph
 }
 
 var taken_values = 0 
@@ -239,47 +257,13 @@ let btn_submit = document.getElementById("btn");
 let dict = null;
 btn_submit.addEventListener("click", () => {
     let regex = document.getElementById("regex").value;
-    //regex_splitter(regex)
     regex = regex.replace(' ', '');
 
     let dictTemp = findParenthesisPairs(regex);
     dict = dictTemp;
-
-    let cosa = recursiva(regex, 0);
-    let graph = {
-        "nodes":cosa.nodes,
-        "links": cosa.links
-    }
-    console.log(cosa)
-    controls(graph) 
-// DO NOT ERASE
-// first of all, check for the different individual graphs that can be created
-    /*let g1 = new Graph(regex_splitter("01"))
-    g1 = g1.concat_symbols()
-    let g2 = new Graph(regex_splitter("1"))
-    g2 = g2.concat_symbols()
-    g1 = g1.union(g2)
-    let g3 = new Graph(regex_splitter("0"))
-    g3 = g3.concat_symbols()
-    g1 = g1.concat_expressions(g3)
-    g1.star()
-    g1.nodes.forEach( node => {
-        if (g1.acceptance.includes(node.id)){
-            node.set = 0
-        }
-    } )
-    let graph = {
-        "nodes":g1.nodes,
-        "links": g1.links
-    }
-    console.log(graph)
-    controls(graph) */
-    
+    controls(prepare_graph(regex))     
 })
 
-
-// zona del miedo
-/* 0U(01(10)*(1(01)*)*0)* */
 const terminales = ["0","1", "a", "b", "c"]
 let my_graph = null;
 let offset = 0;
@@ -295,66 +279,54 @@ function findParenthesisPairs(regex){
     return dict;
 }
 
-
-
-function recursiva(regex, offset, was_char=false, temp=null){
-    //console.log(regex)
-    let pos_star = parseInt(dict[offset])+1;
-    // si es terminal 
-    if( terminales.includes(regex[0])){
-        /* otro if dentro que v[erifique que antes no venia otro caracter concat_expression*/
-        let temp2 = new Graph([regex[0]]);
-        temp2.concat_symbols(); // o --0--> o
-        if(was_char){
-            temp.concat_expressions(temp2);
-            temp2 = temp;
+function terminal(regex, offset, temp=null){
+    let temp2 = new Graph([regex[0]]);
+    temp2.concat_symbols(); // o --0--> o
+    if ( regex.substring(1)!=''){
+        if (regex[1] == '(' || terminales.includes(regex[1])){
+            temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, true, temp2 ));
         }
-        if (regex.substring(1) != ''){
-            if (regex[1] == '(' && isNaN(pos_star)){
-                console.log('1',  regex.substring(1), offset+1)
-                temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, true, temp2 ));
+        else{ temp = recursiva( regex.substring(1), offset+1, true, temp2 ); }
+    }
+    else{
+        temp = temp2
+    }
+    return temp
+}
+
+function star_(regex, offset, temp){
+    let pos_star = parseInt(dict[offset])+1;
+    console.log(pos_star, offset, regex)
+    if (pos_star - offset <= regex.length){
+        if(regex[pos_star - offset] == "*"){
+            let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, temp);
+            temp3.star();
+            let newRegex = regex.substring(pos_star-offset+1);
+            if (terminales.includes(newRegex[0])){
+                temp = temp3.concat_expressions(recursiva(newRegex, pos_star+1, temp3))
             }
-            else{
-                console.log('2',  regex.substring(1), offset+1)
-                temp = recursiva( regex.substring(1), offset+1, true, temp2 );
+            else { 
+                temp = recursiva( regex.substring(pos_star-offset+1), offset-1, temp3);
             }
         }
         else{
-            temp = temp2
+            console.log(dict)
+            temp = recursiva(regex.substring(1, pos_star), offset+1, temp);
+            temp = recursiva(regex.substring(pos_star-offset),offset,temp)
         }
+    }
+    return temp
+}
+
+function recursiva(regex, offset, temp=null){
+    if( terminales.includes(regex[0])){
+        temp = terminal(regex, offset, temp);
     } 
     else if (regex[0] == 'U'){
-        temp = temp.union( recursiva(regex.substring(1), offset+1, false, temp ));
+        temp.union( recursiva(regex.substring(1), offset+1, temp ));
     }
     else if (regex[0] == '(' ){
-        if(pos_star - offset <= regex.length){
-            pos_star = parseInt(dict[offset])+1;
-            //console.log('dentro',dict, offset)
-            if(regex[pos_star - offset] == "*"){
-                //console.log('estrella', regex.substring(1, pos_star-offset-1))
-                console.log('3',  regex.substring(1,  pos_star-offset-1), offset+1)
-                let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, false, temp);
-                temp3.star();
-                if (''!=regex.substring(pos_star-offset+1)){
-                    
-                    if ((regex[1] == '(' || terminales.includes(regex[1]) ) && (pos_star - offset <= regex.length && regex[pos_star - offset] == "*") ) {
-                        console.log('4',regex.substring(pos_star-offset+1), offset)
-                        temp = temp3.concat_expressions(recursiva( regex.substring(pos_star-offset+1), offset-1 , false, temp3))
-                    }
-                    else{
-                        console.log('5',  regex.substring(pos_star-offset+1), offset)
-                        temp = recursiva( regex.substring(pos_star-offset+1), offset-1 , false, temp3);
-                    }
-                }
-                else{
-                    temp = temp3;
-                }
-            }
-            else{
-                temp = recursiva(regex.substring(1, pos_star), offset+1, false, temp);
-                temp = recursiva(regex.substring(pos_star-offset),offset, true,temp)
-            }
-        }
+        temp = star_(regex, offset, temp);
     }
     return temp;
 }
