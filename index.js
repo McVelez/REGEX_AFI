@@ -283,8 +283,11 @@ function terminal(regex, offset, temp=null){
     let temp2 = new Graph([regex[0]]);
     temp2.concat_symbols(); // o --0--> o
     if ( regex.substring(1)!=''){
-        if (regex[1] == '(' || terminales.includes(regex[1])){
+        if (regex[0] == '(' || terminales.includes(regex[0])){
             temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, temp2 ));
+        }
+        else if (regex[0] == 'U'){
+            temp = temp2.union(recursiva( regex.substring(1), offset+1, temp2 ));
         }
         else{ 
             temp = recursiva( regex.substring(1), offset+1, temp2 ); 
@@ -318,6 +321,7 @@ function star_(regex, offset, temp){
         else{
             
             temp = recursiva(regex.substring(1, pos_star-1), pos_star+1, temp);
+            console.log(regex.substring(pos_star-1))
             if (regex.substring(pos_star)[0] == '('|| terminales.includes(regex.substring(pos_star)[0]) ){
                 temp = temp.concat_expressions(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
             }
