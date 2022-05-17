@@ -87,7 +87,7 @@ function controls(graphOFICIAL) {
 
         node.append("circle")
             .attr("r", 12)
-            .style("fill", function (d, i) { console.log('color', d); return colors(d.set);})
+            .style("fill", function (d, i) { return colors(d.set);})
 
         simulation
             .nodes(nodes)
@@ -298,23 +298,31 @@ function terminal(regex, offset, temp=null){
 
 function star_(regex, offset, temp){
     let pos_star = parseInt(dict[offset])+1;
-    console.log(pos_star, offset, regex)
+    //console.log(pos_star, offset, regex)
     if (pos_star - offset <= regex.length){
         if(regex[pos_star - offset] == "*"){
             let temp3 = recursiva( regex.substring(1, pos_star-offset-1), offset+1, temp);
             temp3.star();
             let newRegex = regex.substring(pos_star-offset+1);
-            if (terminales.includes(newRegex[0])){
+            if (terminales.includes(newRegex[0]) || newRegex[0] == '('){
                 temp = temp3.concat_expressions(recursiva(newRegex, pos_star+1, temp3))
+            }
+            else if (newRegex[0] == 'U'){
+                console.log(newRegex.substring(1), pos_star+1)
+                temp = temp3.union(recursiva(newRegex.substring(1), pos_star+2, temp3))
             }
             else { 
                 temp = recursiva( regex.substring(pos_star-offset+1), pos_star+1, temp3);
             }
         }
         else{
-            temp = recursiva(regex.substring(1, pos_star), pos_star+1, temp);
-            if (regex.substring(pos_star+1)[0] == '('|| terminales.includes(regex.substring(pos_star+1)[0]) ){
+            
+            temp = recursiva(regex.substring(1, pos_star-1), pos_star+1, temp);
+            if (regex.substring(pos_star)[0] == '('|| terminales.includes(regex.substring(pos_star)[0]) ){
                 temp = temp.concat_expressions(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
+            }
+            else if (regex.substring(pos_star)[0]=='U'){
+                temp = temp.union(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
             }
             else{
                 temp = recursiva(regex.substring(pos_star+1),pos_star+1,temp)   
@@ -325,7 +333,7 @@ function star_(regex, offset, temp){
 }
 
 function recursiva(regex, offset, temp=null){
-    console.log(regex)
+    //console.log(regex)
     if( terminales.includes(regex[0])){
         temp = terminal(regex, offset, temp);
     } 
