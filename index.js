@@ -248,7 +248,7 @@ function prepare_graph(regex){
         "nodes":cosa.nodes,
         "links": cosa.links
     }
-    console.log(cosa)
+    //console.log(cosa)
     return graph
 }
 
@@ -282,12 +282,13 @@ function findParenthesisPairs(regex){
 function terminal(regex, offset, temp=null){
     let temp2 = new Graph([regex[0]]);
     temp2.concat_symbols(); // o --0--> o
-    if ( regex.substring(1)!=''){
-        if (regex[0] == '(' || terminales.includes(regex[0])){
+    console.log('regex', regex.substring(1))
+    if ( regex.substring(1)!='' && regex.substring(1)!=')'){
+        if (regex[1] == '(' || terminales.includes(regex[1])){
             temp = temp2.concat_expressions(recursiva( regex.substring(1), offset+1, temp2 ));
         }
-        else if (regex[0] == 'U'){
-            temp = temp2.union(recursiva( regex.substring(1), offset+1, temp2 ));
+        else if (regex[1] == 'U'){
+            temp = temp2.union(recursiva( regex.substring(2), offset+2, temp2 ));
         }
         else{ 
             temp = recursiva( regex.substring(1), offset+1, temp2 ); 
@@ -299,7 +300,7 @@ function terminal(regex, offset, temp=null){
     return temp
 }
 
-function star_(regex, offset, temp){
+function has_parenthesis(regex, offset, temp){
     let pos_star = parseInt(dict[offset])+1;
     //console.log(pos_star, offset, regex)
     if (pos_star - offset <= regex.length){
@@ -311,7 +312,7 @@ function star_(regex, offset, temp){
                 temp = temp3.concat_expressions(recursiva(newRegex, pos_star+1, temp3))
             }
             else if (newRegex[0] == 'U'){
-                console.log(newRegex.substring(1), pos_star+1)
+                //console.log(newRegex.substring(1), pos_star+1)
                 temp = temp3.union(recursiva(newRegex.substring(1), pos_star+2, temp3))
             }
             else { 
@@ -319,17 +320,18 @@ function star_(regex, offset, temp){
             }
         }
         else{
-            
             temp = recursiva(regex.substring(1, pos_star-1), pos_star+1, temp);
-            console.log(regex.substring(pos_star-1))
-            if (regex.substring(pos_star)[0] == '('|| terminales.includes(regex.substring(pos_star)[0]) ){
-                temp = temp.concat_expressions(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
-            }
-            else if (regex.substring(pos_star)[0]=='U'){
-                temp = temp.union(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
-            }
-            else{
-                temp = recursiva(regex.substring(pos_star+1),pos_star+1,temp)   
+            console.log(regex, offset, pos_star)
+            if (regex.substring(pos_star-offset)!=''  && regex.substring(pos_star-offset)!=')'){
+                if (regex.substring(pos_star-offset)[0] == '('|| terminales.includes(regex.substring(pos_star-offset)[0]) ){
+                    temp = temp.concat_expressions(recursiva(regex.substring(pos_star+1),pos_star+1,temp))
+                }
+                else if (regex.substring(pos_star-offset)[0]=='U'){
+                    temp = temp.union(recursiva(regex.substring(pos_star-offset+1),pos_star+1,temp))
+                }
+                else{
+                    temp = recursiva(regex.substring(pos_star+1),pos_star+1,temp)   
+                }
             }
         }
     }
@@ -337,7 +339,7 @@ function star_(regex, offset, temp){
 }
 
 function recursiva(regex, offset, temp=null){
-    //console.log(regex)
+    console.log(regex)
     if( terminales.includes(regex[0])){
         temp = terminal(regex, offset, temp);
     } 
@@ -346,7 +348,7 @@ function recursiva(regex, offset, temp=null){
         temp.union( recursiva(regex.substring(1), offset+1, temp ));
     }
     else if (regex[0] == '(' ){
-        temp = star_(regex, offset, temp);
+        temp = has_parenthesis(regex, offset, temp);
     }
     return temp;
 }
