@@ -5,32 +5,104 @@
 </head>
 <style>
 
-  .links line {
-    stroke: #999;
-    stroke-width: 3px;
-    stroke-opacity: 0.6;
-  }
+.outer{
+  display: flex;
+}
 
-  .nodes circle {
-    stroke: #fff;
-    stroke-width: 1.5px;
-  }
+.graph_stuff{
+  width: 100%;
+}
 
-  .svg-div{
-    margin: auto;
-    border: 5px solid #0c0c0c;
-  }
+.instructions{
+  background-color: rgba(255, 182, 193, 0.606);
+  width: 30%;
+  float: inline-end;
+  border-radius: 25px;
+  height: 640px;
+  text-align: left;
+  font-family: Verdana, Times;
+  font-size: 20px;
+  padding: 13px;
+}
+
+.title{
+  position: relative;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: Verdana, Times, serif;
+  font-weight: bold;
+  font-size: xx-large; 
+}
+
+.svg-div{
+  position: relative;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+  text-align: center;
+  width: 95%;
+  height: 520px;
+  border: 5px solid #0c0c0c;
+}
+
+.regex{
+  position: relative;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+  text-align: center;
+  width: 95%;
+  height: 520px;;
+}
+
+.regex_input{
+  width: 86%;
+  height: 7%;
+  background-color:#ededed;
+}
+
+.btn-submit{
+  height: 8%;
+  width: 12.5%;
+}
+
 
 </style>
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
 <body>
-  <svg width="1000" height="600" class="svg-div"></svg>
-  
-  <div>
-    <input type="text" name="regex" id="regex">
-    <button type="button" class="btn-submit" id="btn">I'm done</button> 
-  </div> 
+  <div class="title">
+    <p> Convertidor de REGEX a AFI </p>
+  </div>
+  <div class="outer">
+    <div class="instructions">
+      <div class="lista_">
+        <ul>
+        <b>Consideraciones a seguir</b>
+          <li>Los únicos simbolos aceptados son las letras del alfabeto minúsculas y los numeros del 0 al 9.</li>
+          <li>Para operación de unión utilizar U mayúscula.</li>
+          <li>Para operación de estrella utilizar *.</li>
+          <li>Respetar el uso de parentesis cuando sea necesario (En caso de realizar una union o operacion estrella sobre mas de un elemento).</li>
+        
+        </ul>
+      </div>
+    </div>
+    <div class="graph_stuff">
+      <svg class="svg-div"><g></g></svg>
+    
+      <div class="regex">
+        <input type="text" name="regex" id="regex" class="regex_input">
+        <button type="button" class="btn-submit" id="btn">Convertir</button> 
+      </div>  
+    </div>
+
+  </div>
+
   <script type="text/javascript" src="index.js"></script> 
 </body>
 

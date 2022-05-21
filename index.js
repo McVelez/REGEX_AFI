@@ -1,12 +1,14 @@
 function controls(graphOFICIAL) {
     var colors = d3.scaleOrdinal(d3.schemeCategory10);
-
-    var svg = d3.select("svg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height"),
+    console.log(graphOFICIAL)
+    var svg = d3.select("svg").call(d3.zoom().on("zoom", function () {
+        svg.attr("transform", d3.event.transform)
+        })).append('g'),
+        width = +svg.attr("width")+900,  
+        height = +svg.attr("height")+400,
         node, edgepaths, edgelabels,
         link;
-
+    //svg.html(null)
     svg.append('defs').append('marker')
         .attrs({'id':'arrowhead',
             'viewBox':'0 -5 10 10',
@@ -17,9 +19,9 @@ function controls(graphOFICIAL) {
             'markerHeight':13,
             'xoverflow':'visible'})
         .append('svg:path')
-        .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-        .style('stroke','black');
-
+        .attr('d', 'M 0,-5 L 10 ,10 L 0,5')
+        .style('stroke','black')
+        
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {return d.id;}).distance(100).strength(1))
         .force("charge", d3.forceManyBody())
@@ -135,7 +137,10 @@ function controls(graphOFICIAL) {
         d.fx = d3.event.x;
         d.fy = d3.event.y;
     }
+
 }
+
+let all = [];
 
 class Graph{
     constructor(REGEX){
@@ -175,6 +180,7 @@ class Graph{
         // al ser una concatenacion de simbolos, solo tenemos un nodo de aceptacion
         this.acceptance = [taken_values-1];
         // regresamos la instancia de Graph
+        all.push(Object.assign(Object.create(Object.getPrototypeOf(this)), this))
         return this
     }
     // recibimos una expresion, la cual es una instancia de Graph
@@ -193,6 +199,7 @@ class Graph{
         // los estados de aceptacion se vuelven los de b, ya que los anteriores ahora apuntan hacia
         // el incial de b
         this.acceptance = exp_b.acceptance;
+        all.push(Object.assign(Object.create(Object.getPrototypeOf(this)), this))
         return this
     }
     // recibimos una instancia de Graph
@@ -212,6 +219,7 @@ class Graph{
         this.acceptance = this.acceptance.concat( graph_b.acceptance )
         // solo agregamos un nodo nuevo
         taken_values += 1
+        all.push(Object.assign(Object.create(Object.getPrototypeOf(this)), this))
         return this
     }
     // operacion unaria
@@ -227,6 +235,7 @@ class Graph{
         // el nuevo estado inicial es el nodo agregado
         this.initial = taken_values;
         taken_values +=1;
+        all.push(Object.assign(Object.create(Object.getPrototypeOf(this)), this))
     }
 }
 
@@ -234,7 +243,7 @@ function prepare_graph(regex){
     let cosa = recursiva(regex, 0);
     cosa.nodes.forEach( node => {
         if (cosa.initial == node.id && cosa.acceptance.includes(node.id)){
-            node.set = 3
+            node.set = 10
         }
         else if (cosa.acceptance.includes(node.id)){
             node.set = 0 // verde
@@ -256,12 +265,14 @@ var taken_values = 0
 let btn_submit = document.getElementById("btn");
 let dict = null;
 btn_submit.addEventListener("click", () => {
+    d3.selectAll("svg > *").remove();
     let regex = document.getElementById("regex").value;
     regex = regex.replace(' ', '');
 
     let dictTemp = findParenthesisPairs(regex);
     dict = dictTemp;
-    controls(prepare_graph(regex))     
+    controls(prepare_graph(regex));
+    console.log(all) 
 })
 
 const terminales = ["0","1", "a", "b", "c"]
