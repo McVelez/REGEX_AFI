@@ -19,7 +19,7 @@ function controls(graphOFICIAL) {
             'markerHeight':13,
             'xoverflow':'visible'})
         .append('svg:path')
-        .attr('d', 'M 0,-5 L 10 ,10 L 0,5')
+        .attr('d', 'M 0,-5 L 10 , 0 L 0,5')
         .style('stroke','black')
         
     var simulation = d3.forceSimulation()
